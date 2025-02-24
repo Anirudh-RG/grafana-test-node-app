@@ -83,9 +83,14 @@ if (cluster.isMaster) {
         
         parentPort.on('message', (seconds) => {
           const start = Date.now();
-          while (Date.now() - start < seconds * 1000) {
+          const endTime = Date.now() + seconds * 1000;
+          while (Date.now() < endTime) {
+            if (Date.now() > endTime + 50) {  // Ensure it doesn't exceed expected time
+              break;
+            }
             Math.random() * Math.random();
           }
+
           parentPort.postMessage({
             duration: Date.now() - start
           });

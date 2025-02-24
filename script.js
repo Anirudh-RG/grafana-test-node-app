@@ -3,10 +3,10 @@ import { sleep, check } from 'k6';
 
 export const options = {
   stages: [
-    { duration: '1m', target: 40 },
-    { duration: '3m', target: 200 },
-    { duration: '2m', target: 300 },
-    { duration: '4m', target: 0 },
+    { duration: '2m', target: 30 }, 
+    { duration: '8m', target: 200 },
+    { duration: '6m', target: 300 },
+    { duration: '8m', target: 0 },
   ],
   thresholds: {
     http_req_duration: ['p(95)<3000'], // 95% of requests should be below 3s
