@@ -233,24 +233,36 @@ if (cluster.isPrimary) {  // Using isPrimary instead of isMaster (modern API)
         memoryChunks.length = 0;
         
         // Trigger garbage collection if available
+        // Setup GC performance observer if GC is exposed
         if (global.gc) {
-          console.log(`[${process.pid}] Triggering manual garbage collection`);
-          const beforeGc = process.memoryUsage();
-          
-          // Record GC time
-          const gcStart = performance.now();
-          global.gc();
-          const gcDuration = performance.now() - gcStart;
-          
-          // Measure memory after GC
-          setTimeout(() => {
-            const afterGc = process.memoryUsage();
-            console.log(`[${process.pid}] GC completed in ${Math.round(gcDuration)}ms, freed approximately ${
-              Math.round((beforeGc.heapUsed - afterGc.heapUsed) / 1024 / 1024)
-            }MB heap and ${
-              Math.round((beforeGc.rss - afterGc.rss) / 1024 / 1024)
-            }MB RSS`);
-          }, 100);
+          // Create performance observer for garbage collection
+          const obs = new PerformanceObserver((list) => {
+            const entries = list.getEntries();
+            
+            entries.forEach(entry => {
+              if (entry.entryType === 'gc') {
+                gcStats.collections++;
+                gcStats.gcTime += entry.duration;
+                gcStats.lastGcDuration = entry.duration;
+                
+                // Use entry.detail instead of deprecated accessors
+                const gcType = entry.detail?.kind || 'unknown';
+                
+                gcStats.lastCollection = {
+                  type: gcType, // 'minor' or 'major'
+                  duration: entry.duration,
+                  timestamp: Date.now()
+                };
+                
+                // Log major GC events
+                if (gcType === 'major') {
+                  console.log(`[GC] Major collection: ${Math.round(entry.duration)}ms`);
+                }
+              }
+            });
+          });
+          // Subscribe to GC events
+          obs.observe({ entryTypes: ['gc'], buffered: false });
         }
       }, 5000);
 

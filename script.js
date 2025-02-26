@@ -16,7 +16,7 @@ export const options = {
 };
 
 export default function() {
-  const url = "http://15.207.105.218";  // Your ECS service URL
+  const url = "http://15.206.195.19";  // Your ECS service URL
 
   // Memory test - gradually increase memory usage
   const memoryMB = Math.floor(Math.random() * 100) + 50; // Request between 50-150MB
